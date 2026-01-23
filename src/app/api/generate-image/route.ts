@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { GoogleGenAI } from '@google/genai';
+import OpenAI from 'openai';
 
 const IMAGE_SYSTEM_PROMPT = 'Generate an isolated object/scene on a simple background.';
 
@@ -11,41 +11,42 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Prompt is required' }, { status: 400 });
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
       return NextResponse.json({ error: 'API key not configured' }, { status: 500 });
     }
 
-    const ai = new GoogleGenAI({ apiKey });
+    const openai = new OpenAI({ apiKey });
 
     let finalPrompt = prompt;
     if (optimize) {
       finalPrompt = `${IMAGE_SYSTEM_PROMPT}\n\nSubject: ${prompt}`;
     }
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash-image',
-      contents: {
-        parts: [{ text: finalPrompt }],
-      },
-      config: {
-        responseModalities: ['IMAGE'],
-        imageConfig: {
-          aspectRatio: aspectRatio,
-        },
-      } as any,
+    const size =
+      aspectRatio === '16:9'
+        ? '1536x1024'
+        : aspectRatio === '9:16'
+          ? '1024x1536'
+          : '1024x1024';
+
+    const response = await openai.images.generate({
+      model: 'gpt-image-1-mini',
+      prompt: finalPrompt,
+      size,
     });
 
-    const parts = response.candidates?.[0]?.content?.parts || [];
-    for (const part of parts) {
-      const p = part as any;
-      if (p.inlineData) {
-        const base64ImageBytes = p.inlineData.data;
-        const mimeType = p.inlineData.mimeType || 'image/png';
-        return NextResponse.json({
-          imageUrl: `data:${mimeType};base64,${base64ImageBytes}`,
-        });
-      }
+    const image = response.data?.[0];
+    const base64ImageBytes = image?.b64_json;
+    if (base64ImageBytes) {
+      return NextResponse.json({
+        imageUrl: `data:image/png;base64,${base64ImageBytes}`,
+      });
+    }
+
+    const imageUrl = image?.url;
+    if (imageUrl) {
+      return NextResponse.json({ imageUrl });
     }
 
     return NextResponse.json({ error: 'No image generated' }, { status: 500 });
