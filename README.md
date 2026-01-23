@@ -1,24 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Image to Voxel turns a prompt into an image, then generates a voxel-art HTML scene inspired by that image.
+
+## Features
+
+- Prompt-to-image generation for a clean subject on a simple background.
+- Voxel scene generation as a single-page Three.js HTML file.
+- Client-side UI with secure server-side API routes for keys.
+
+## Tech Stack
+
+- Next.js App Router
+- OpenAI image generation
+- Google Gemini for voxel scene code
+- Three.js (generated output)
 
 ## Getting Started
 
-First, run the development server:
+Install dependencies:
+
+```bash
+npm install
+```
+
+Configure environment variables:
+
+Create `.env.local` with:
+
+```
+OPENAI_API_KEY=your_openai_key
+GEMINI_API_KEY=your_gemini_key
+```
+
+Run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) with your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Usage
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Enter a prompt and generate an image.
+2. Generate the voxel scene from the image.
+3. Save or copy the generated HTML output.
+
+## Notes
+
+- Node 20+ is recommended (some dependencies require Node 20).
+- The image route uses OpenAI; the voxel route uses Gemini.
+
+## Project Structure
+
+- `src/app/api/generate-image/route.ts` - image generation endpoint
+- `src/app/api/generate-voxel/route.ts` - voxel HTML generation endpoint
+- `src/lib/gemini.ts` - client helpers and prompt template
 
 ## Learn More
 
